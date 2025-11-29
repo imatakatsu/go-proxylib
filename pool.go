@@ -24,6 +24,18 @@ func (p *Pool) Next() *Proxy {
 	return p.proxies[int(idx) % len(p.proxies)]
 }
 
+func (p *Pool) AddProxies(proxies []*Proxy) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.proxies = append(p.proxies, proxies...)
+}
+
+func (p *Pool) AddProxy(proxy *Proxy) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.proxies = append(p.proxies, proxy)
+}
+
 /*
 	functions below will be added in further updates
 	you can donate me if u want to see them in proxylib faster ;d
