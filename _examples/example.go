@@ -45,7 +45,7 @@ func main() {
 		}
 		defer conn.Close()
 
-		_, err = conn.Write([]byte("GET ident.me:80 HTTP/1.1\r\nHost: ident.me:80\r\nConnection: close\r\n\r\n"))
+		_, err = conn.Write([]byte("GET / HTTP/1.1\r\nHost: ident.me:80\r\nConnection: close\r\n\r\n"))
 		if err != nil {
 			log.Printf("failed to send request via proxy, err: %s\r\n", err.Error())
 			continue
@@ -79,7 +79,7 @@ func main() {
 		}
 		defer conn.Close()
 
-		_, err = conn.Write([]byte("GET ident.me:80 HTTP/1.1\r\nHost: ident.me:80\r\nConnection: close\r\n\r\n"))
+		_, err = conn.Write([]byte("GET / HTTP/1.1\r\nHost: ident.me:80\r\nConnection: close\r\n\r\n"))
 		if err != nil {
 			log.Printf("failed to send request via proxy, err: %s\r\n", err.Error())
 			continue
