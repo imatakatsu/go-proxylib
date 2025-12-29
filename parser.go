@@ -2,7 +2,6 @@ package proxylib
 
 import (
 	"encoding/base64"
-	"fmt"
 	"net/url"
 	"strings"
 )
@@ -30,7 +29,7 @@ func ParseURL(proto string, line string) (*Proxy, error) {
 	}
 
 	if proto == "" {
-		return nil, fmt.Errorf("proxy proto not found")
+		return nil, ErrInvalidProxyFormat
 	}
 
 	if u.User != nil {
@@ -40,7 +39,7 @@ func ParseURL(proto string, line string) (*Proxy, error) {
 
 	host = u.Hostname()
 	if u.Port() == "" {
-		return nil, fmt.Errorf("invalid url format, port MUST exist")
+		return nil, ErrInvalidProxyFormat
 	}
 	port = u.Port()
 	return &Proxy{
@@ -86,7 +85,7 @@ func ParseString(proto string, line string) (*Proxy, error) {
 		username = parts[2]
 		password = parts[3]
 	default:
-		return nil, fmt.Errorf("invalid proxy string format")
+		return nil, ErrInvalidProxyFormat
 	}
 
 	return &Proxy{

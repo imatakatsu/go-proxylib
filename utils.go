@@ -2,47 +2,61 @@ package proxylib
 
 import (
 	"bytes"
-	"fmt"
 	"net"
 	"time"
 )
 
 // auth must be "Basic <b64>"
 func http_connect(conn net.Conn, target_host string, auth string, deadline time.Time) error {
-	if auth != "" {
-		auth = "Proxy-Authorization: " + auth + "\r\n"
-	}
-	_, err := fmt.Fprintf(conn, "CONNECT %s HTTP/1.1\r\nHost: %s\r\n%s\r\n", target_host, target_host, auth)
-	if err != nil {
-		return err
-	}
+	buf := make([]byte, 0, 1024)
 
-	var buf [4096]byte
+	buf = append(buf, "CONNECT "...)
+	buf = append(buf, target_host...)
+	buf = append(buf, " HTTP/1.1\r\nHost: "...)
+	buf = append(buf, target_host...)
+	buf = append(buf, "\r\n"...)
+	if auth != "" {
+		buf = append(buf, "Proxy-Authorization: "...)
+		buf = append(buf, auth...)
+		buf = append(buf, "\r\n"...)
+	}
+	buf = append(buf, "\r\n"...)
+
 	if !deadline.IsZero() {
 		conn.SetDeadline(deadline)
 		defer conn.SetDeadline(time.Time{})
 	}
 
-	totbytes := 0
+	if _, err := conn.Write(buf); err != nil {
+		return err
+	}
+
+	buf = buf[:cap(buf)]
+	tb := 0
 
 	for {
-		n, err := conn.Read(buf[totbytes:])
+		n, err := conn.Read(buf[tb:])
 		if err != nil {
 			return err
 		}
+		tb += n
 
-		totbytes += n
-
-		if bytes.HasSuffix(buf[:totbytes], []byte("\r\n\r\n")) {
+		if tb >= 4 && bytes.HasSuffix(buf[:tb], []byte("\r\n\r\n")) {
 			break
-		} else if totbytes == len(buf) {
-			return fmt.Errorf("response too large")
+		}
+
+		if tb >= len(buf) {
+			return ErrResponseTooLarge
 		}
 	}
 
-	parts := bytes.SplitN(buf[:totbytes], []byte("\r\n"), 2)
-	if !bytes.Contains(parts[0], []byte(" 200 ")) {
-		return fmt.Errorf("bad response status from server: %s", parts[0])
+	lineEnd := bytes.IndexByte(buf[:tb], '\r')
+	if lineEnd == -1 {
+		return ErrInvalidProxyResponse
+	}
+
+	if !bytes.Contains(buf[:lineEnd], []byte(" 200 ")) {
+		return ErrInvalidProxyResponse
 	}
 
 	return nil

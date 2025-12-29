@@ -3,7 +3,6 @@ package proxylib
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -36,7 +35,7 @@ func LoadFromReader(r io.Reader, proto string, parser ParserFunc) ([]*Proxy, err
 	}
 
 	if len(proxies) == 0 {
-		return nil, fmt.Errorf("no proxies found")
+		return nil, ErrNoProxiesFound
 	}
 	return proxies, nil
 }

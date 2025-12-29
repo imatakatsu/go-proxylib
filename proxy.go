@@ -2,7 +2,6 @@ package proxylib
 
 import (
 	"crypto/tls"
-	"fmt"
 	"net"
 	"time"
 )
@@ -63,6 +62,6 @@ func (p *Proxy) DialTimeout(host string, timeout time.Duration) (net.Conn, error
 
 	default:
 		conn.Close()
-		return nil, fmt.Errorf("this protocol is not supported yet, use HTTP/HTTPS instead :(")
+		return nil, ErrNotSupported
 	}
 }
